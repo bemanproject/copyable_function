@@ -76,7 +76,7 @@ namespace beman {
     
         public: 
         function_holder() = default; 
-        function_holder(nullptr_t): fn(nullptr){}
+        function_holder(std::nullptr_t): fn(nullptr){}
 
         ~function_holder() 
         {
@@ -162,12 +162,12 @@ namespace beman {
             return std::invoke_r<R>(static_cast<Fn INVOKE_QUALS>(*fn), std::forward<Args>(args)...);
         }
 
-        bool operator==(nullptr_t) 
+        bool operator==(std::nullptr_t) 
         {
             return fn == nullptr;
         }
 
-        bool operator!=(nullptr_t) 
+        bool operator!=(std::nullptr_t) 
         {
             return fn != nullptr;
         }
@@ -201,7 +201,7 @@ namespace beman {
         public: 
             using result_type = R; 
             copyable_function() noexcept = default; 
-            copyable_function(nullptr_t) noexcept : fn(nullptr) {}
+            copyable_function(std::nullptr_t) noexcept : fn(nullptr) {}
 
             copyable_function(const copyable_function& other) : fn(other.fn)
             {
@@ -237,7 +237,7 @@ namespace beman {
                 return *this;
             }
 
-            copyable_function& operator=(nullptr_t) noexcept 
+            copyable_function& operator=(std::nullptr_t) noexcept 
             {
                 fn.reset(); 
                 return *this;
@@ -265,7 +265,7 @@ namespace beman {
                 f1.swap(f2);
             }
 
-            friend bool operator==(const copyable_function& func, nullptr_t) noexcept
+            friend bool operator==(const copyable_function& func, std::nullptr_t) noexcept
             {
                 return true;
             }
