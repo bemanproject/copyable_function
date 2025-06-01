@@ -90,6 +90,7 @@ class function_holder<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)> 
     ~function_holder() {
         if (fn != nullptr) {
             fn->destroy();
+            fn->~Fn();
         }
     }
 
