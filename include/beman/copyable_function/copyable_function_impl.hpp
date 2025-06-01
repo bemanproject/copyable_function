@@ -59,10 +59,7 @@ class fn_ptr<Fp, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>
     R operator()(Args... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) { return func(args...); }
 
     base<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>* clone() {
-        typedef std::allocator_traits<Alloc> alloc_traits; 
-        typedef std::__rebind_alloc<alloc_traits, fn_ptr> alloc_rebind;
-        alloc_rebind ap(a); 
-        std::unique_ptr<Fun> ptr(ap.allocate(1));
+        std::unique_ptr<Fun> ptr(a.allocate(1));
         ::new ((void*)ptr.get()) Fun(func);
         return ptr.release();
     }
