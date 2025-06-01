@@ -9,7 +9,7 @@ project(
     LANGUAGES CXX
     VERSION 0.1.0
 )
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 
 enable_testing()
 
