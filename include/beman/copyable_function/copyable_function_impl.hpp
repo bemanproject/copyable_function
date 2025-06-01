@@ -32,7 +32,8 @@ namespace beman {
         virtual ~base() = default; 
         virtual R operator()(Args... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) = 0; 
         virtual base* clone()        = 0;
-        virtual void  clone(base*)  = 0;
+        virtual void  clone(base*)   = 0;
+        virtual void  destroy()      = 0;
     };
     
     template<class Fp, class Fd> class fn_ptr; 
@@ -47,6 +48,8 @@ namespace beman {
 
             template<class... A> 
             fn_ptr(A&&... args): func(args...) {}
+
+            ~fn_ptr() = default;
     
             R operator()(Args... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
             {
@@ -62,6 +65,11 @@ namespace beman {
             void clone(base<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>* ptr) 
             {
                 ::new ((void*)ptr) fn_ptr(func);
+            }
+
+            void destroy() 
+            {
+                func.~Fp();
             }
     };
     
@@ -82,7 +90,7 @@ namespace beman {
         {
             if (fn != nullptr)
             {
-                fn->~Fn();
+                fn->destroy();
             }
         }
 
