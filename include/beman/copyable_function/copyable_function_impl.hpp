@@ -40,8 +40,14 @@ class fn_ptr;
 template <class Fp, class R, class... Args>
 class fn_ptr<Fp, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>
     : public base<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)> {
-  public:
+
+  private: 
     Fp func;
+    using Fun = fn_ptr<Fp, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>;
+    using Alloc = std::allocator<Fun>;
+    Alloc a;
+  public:
+
     fn_ptr(Fp&& f) : func(std::move(f)) {}
     fn_ptr(const Fp& f) : func(f) {}
 
@@ -53,8 +59,12 @@ class fn_ptr<Fp, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>
     R operator()(Args... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) { return func(args...); }
 
     base<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>* clone() {
-        typedef fn_ptr<Fp, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)> Fun;
-        return new Fun(func);
+        typedef std::allocator_traits<Alloc> alloc_traits; 
+        typedef std::__rebind_alloc<alloc_traits, fn_ptr> alloc_rebind;
+        alloc_rebind ap(a); 
+        std::unique_ptr<Fun> ptr(ap.allocate(1));
+        ::new ((void*)ptr.get()) Fun(func);
+        return ptr.release();
     }
 
     void clone(base<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>* ptr) {
