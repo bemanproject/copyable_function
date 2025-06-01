@@ -44,7 +44,6 @@
 #define _REF &&
 #include "copyable_function_impl.hpp"
 
-
 // const, noexcept, no ref
 #define _CONST const
 #define _COPYABLE_FUNC_NOEXCEPT true
@@ -62,6 +61,4 @@
 #define _COPYABLE_FUNC_NOEXCEPT true
 #include "copyable_function_impl.hpp"
 
-
 #endif // BEMAN_COPYABLE_FUNCTION_IDENTITY_HPP
-

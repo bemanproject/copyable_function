@@ -7,26 +7,26 @@
 
 #include <algorithm>
 #include <functional>
-#include <iostream> 
+#include <iostream>
 
 TEST(CallTest, CopyAssignment) {
     beman::copyable_function<int()> f(Callable{});
     beman::copyable_function<int()> f2 = f;
-    int x = f2();
+    int                             x  = f2();
     EXPECT_EQ(x, 42);
 }
 
 TEST(CallTest, MoveAssignment) {
     beman::copyable_function<int()> f(Callable{});
     beman::copyable_function<int()> f2 = std::move(f);
-    int x = f2();
+    int                             x  = f2();
     EXPECT_EQ(x, 42);
 }
 
 TEST(CallTest, NullPtrAssignment) {
     beman::copyable_function<int()> f(Callable{});
-    int x = f();
+    int                             x = f();
     EXPECT_EQ(x, 42);
-    f = nullptr; 
+    f = nullptr;
     EXPECT_EQ(f == nullptr, true);
 }
