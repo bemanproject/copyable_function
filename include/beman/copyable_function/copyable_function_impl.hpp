@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <memory>
 
+#include "helper.h"
+
 #ifndef _CONST
 #define _CONST
 #endif
@@ -18,6 +20,10 @@
 
 #ifndef _COPYABLE_FUNC_NOEXCEPT
 #define _COPYABLE_FUNC_NOEXCEPT false
+#endif
+
+#ifndef _USE_CUSTOM_VTABLE
+#define _USE_CUSTOM_VTABLE true
 #endif
 
 namespace beman {
@@ -115,7 +121,7 @@ class function_holder<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)> 
     function_holder(F&& f) {
         using DecayFn = std::decay_t<F>;
         typedef fn_ptr<DecayFn, R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)> Fun;
-        if (sizeof(F) <= sizeof(buffer)) {
+        if (sizeof(DecayFn) <= sizeof(buffer)) {
             fn = ::new ((void*)buffer) Fun(std::move(f));
         } else {
             fn = new Fun(std::move(f));
@@ -175,6 +181,35 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
                std::is_nothrow_invocable_r_v<R, T INVOKE_QUALS, Args...>)
             : (std::is_invocable_r_v<R, T _CONST _REF, Args...> && std::is_invocable_r_v<R, T INVOKE_QUALS, Args...>);
 
+    static constexpr std::size_t BufferSize = 3 * sizeof(void*); 
+    static constexpr std::size_t Alignment = sizeof(void*); 
+    using BufferType = Buffer<BufferSize, Alignment>; 
+    using VTableType = VTable<BufferType, R, Args...>;
+
+    mutable BufferType __buffer;
+
+
+    template<class Functor> 
+    static constexpr VTableType __vtable = 
+    {
+        .call = [](BufferType& __buffer, Args&&... args) -> R 
+            {
+                return std::invoke_r<R>(
+                    static_cast<Functor INVOKE_QUALS>(*__buffer.__get<Functor>()), 
+                    std::forward<Args>(args)...
+                );
+            }
+    };
+
+    template<class _Func, class... _Args> 
+    void construct(Args&&... args)
+    {
+        using DecayType = std::decay_t<_Func>;
+        __buffer.template construct<DecayType>(std::forward<Args>(args)...);
+    }
+
+    const VTableType *__vtable_ptr;
+
   public:
     using result_type            = R;
     copyable_function() noexcept = default;
@@ -185,7 +220,17 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
     copyable_function(copyable_function&& other) noexcept : fn(std::move(other.fn)) {}
 
     template <class Func>
-    copyable_function(Func f) : fn(std::move(f)) {}
+    copyable_function(Func&& f) 
+        #if _USE_CUSTOM_VTABLE == true
+            : fn(std::forward<Func>(f)) 
+        #endif
+    {
+        #if _USE_CUSTOM_VTABLE == false
+            using DecayType = std::decay_t<Func>;
+            __vtable_ptr = &__vtable<DecayType>; 
+            construct<DecayType>(std::forward<Func>(f));
+        #endif
+    }
 
     template <class Func, class... _Args>
     explicit copyable_function(std::in_place_type_t<Func>, _Args&&... args)
@@ -211,14 +256,19 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
     }
 
     template <class F>
-    copyable_function& operator=(F&& f) {
+    copyable_function& operator=(F&& f) { 
         fn = f;
         return *this;
     }
 
     R operator()(Args&&... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) {
-        using Type = function_holder<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>;
-        return std::invoke_r<R>(static_cast<Type INVOKE_QUALS>(fn), std::forward<Args>(args)...);
+        #if _USE_CUSTOM_VTABLE == true 
+            using Type = function_holder<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>;
+            return std::invoke_r<R>(static_cast<Type INVOKE_QUALS>(fn), std::forward<Args>(args)...);
+        #else
+            const auto __call = static_cast<R (*)(BufferT&, Args...)>(__vtable_ptr->call);
+            return __call(buffer, std::forward<Args>(args)...);
+        #endif
     }
 
     void swap(copyable_function& other) noexcept { fn.swap(other.fn); }
@@ -233,3 +283,4 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 #undef _REF
 #undef _COPYABLE_FUNC_NOEXCEPT
 #undef INVOKE_QUALS
+#undef _USE_CUSTOM_VTABLE
