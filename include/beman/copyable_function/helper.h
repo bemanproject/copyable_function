@@ -28,12 +28,11 @@ class Buffer
         
 };
 
-template<class Buffer, class R, class... Args> 
+template<class BufferType, class R, class... Args> 
 struct VTable
 {
-    R (*call)(Buffer&, Args&&...);
-    // void* (*clone)(void*); 
-    // void (*destroy)();
+    R (*call)(BufferType&, Args&&...);
+    void (*destroy)(BufferType&);
 };
 
 

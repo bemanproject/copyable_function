@@ -199,6 +199,10 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
                     std::forward<Args>(args)...
                 );
             }
+        .destroy = [](BufferType& __buffer) -> R 
+            {
+                std::destroy<>
+            };
     };
 
     template<class _Func, class... _Args> 
@@ -241,13 +245,23 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
         : fn(std::in_place_type_t<Func>{}, il, std::forward<_Args>(args)...) {}
 
     copyable_function& operator=(const copyable_function& other) {
-        fn = other.fn;
-        return *this;
+        #if _USE_CUSTOM_VTABLE == false 
+            fn = other.fn;
+            return *this;
+        #else _USE_CUSTOM_VTABLE == 
+            copyable_function(other).swap(*this);
+            return *this; 
+        #endif
     }
 
     copyable_function& operator=(copyable_function&& other) {
-        fn = std::move(other.fn);
-        return *this;
+        #if _USE_CUSTOM_VTABLE == false 
+            fn = std::move(other.fn);
+            return *this;
+        #else
+            copyable_function(std::move(other)).swap(*this);
+            return *this;
+        #endif
     }
 
     copyable_function& operator=(std::nullptr_t) noexcept {
@@ -257,8 +271,13 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 
     template <class F>
     copyable_function& operator=(F&& f) { 
-        fn = f;
-        return *this;
+        #if _USE_CUSTOM_VTABLE == false 
+            fn = f;
+            return *this;
+        #else
+            copyable_function(std::forward<F>(f)).swap(*this);
+            return *this;
+        #endif
     }
 
     R operator()(Args&&... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) {
@@ -271,7 +290,15 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
         #endif
     }
 
-    void swap(copyable_function& other) noexcept { fn.swap(other.fn); }
+    void swap(copyable_function& other) noexcept 
+    { 
+        #if _USE_CUSTOM_VTABLE == false 
+            fn.swap(other.fn); 
+        #else 
+            std::swap(__vtable_ptr, other.__vtable_ptr);
+            std::swap(buffer, other.buffer);
+        #endif
+    }
 
     friend void swap(copyable_function& f1, copyable_function& f2) noexcept { f1.swap(f2); }
 
