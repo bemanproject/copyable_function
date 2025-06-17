@@ -2,7 +2,7 @@
 #define BEMAN_COPYABLE_FUNCTION_HELPER
 
 #include <new>
-
+namespace beman {
 template <typename T>
 struct _is_in_place_type : std::false_type {};
 
@@ -51,5 +51,6 @@ struct VTable {
     void (*destroy)(BufferType&);
     void (*clone)(BufferType& from, BufferType& to);
 };
+} // namespace beman
 
 #endif
