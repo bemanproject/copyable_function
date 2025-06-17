@@ -153,7 +153,7 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 
     friend void swap(copyable_function& f1, copyable_function& f2) noexcept { f1.swap(f2); }
 
-    friend bool operator==(const copyable_function& func, std::nullptr_t) noexcept { return true; }
+    friend bool operator==(const copyable_function& func, std::nullptr_t) noexcept { return __vtable_ptr == nullptr; }
 };
 } // namespace beman
 
