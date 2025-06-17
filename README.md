@@ -1,4 +1,4 @@
-# beman.exemplar: A Beman Library Exemplar
+# beman.copyable_function: A Beman Library Implementation of copyable_function (P2548)
 
 <!--
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -7,72 +7,37 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 <!-- markdownlint-disable-next-line line-length -->
 ![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg)
 
-`beman.exemplar` is a minimal C++ library conforming to [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
+`beman.copyable_function` is a minimal C++ library conforming to [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
 This can be used as a template for those intending to write Beman libraries.
 It may also find use as a minimal and modern  C++ project structure.
-
-**Implements**: `std::identity` proposed in [Standard Library Concepts (P0898R3)](https://wg21.link/P0898R3).
 
 **Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
 
 ## Usage
 
-`std::identity` is a function object type whose `operator()` returns its argument unchanged.
-`std::identity` serves as the default projection in constrained algorithms.
-Its direct usage is usually not needed.
+`std::copyable_function` is a type-erased function wrapper
+that can represent any copyable callable matching
+the function signature R(Args...)
 
 ### Usage: default projection in constrained algorithms
 
 The following code snippet illustrates how we can achieve a default projection using `beman::exemplar::identity`:
 
 ```cpp
-#include <beman/exemplar/identity.hpp>
+#include <beman/copyable_function/copyable_function.hpp>
 
 namespace exe = beman::exemplar;
 
-// Class with a pair of values.
-struct Pair
-{
-    int n;
-    std::string s;
-
-    // Output the pair in the form {n, s}.
-    // Used by the range-printer if no custom projection is provided (default: identity projection).
-    friend std::ostream &operator<<(std::ostream &os, const Pair &p)
-    {
-        return os << "Pair" << '{' << p.n << ", " << p.s << '}';
-    }
-};
-
-// A range-printer that can print projected (modified) elements of a range.
-// All the elements of the range are printed in the form {element1, element2, ...}.
-// e.g., pairs with identity: Pair{1, one}, Pair{2, two}, Pair{3, three}
-// e.g., pairs with custom projection: {1:one, 2:two, 3:three}
-template <std::ranges::input_range R,
-          typename Projection>
-void print(const std::string_view rem, R &&range, Projection projection = exe::identity>)
-{
-    std::cout << rem << '{';
-    std::ranges::for_each(
-        range,
-        [O = 0](const auto &o) mutable
-        { std::cout << (O++ ? ", " : "") << o; },
-        projection);
-    std::cout << "}\n";
+// a Callable object
+struct Callable {
+    int operator()() { return 42; }
+    int operator()() const noexcept { return 43; }
 };
 
 int main()
 {
-    // A vector of pairs to print.
-    const std::vector<Pair> pairs = {
-        {1, "one"},
-        {2, "two"},
-        {3, "three"},
-    };
-
-    // Print the pairs using the default projection.
-    print("\tpairs with beman: ", pairs);
-
+    beman::copyable_function<int()> f(Callable{});
+    int x = f();
     return 0;
 }
 
@@ -286,61 +251,61 @@ Enable building examples. Default: ON. Values: { ON, OFF }.
 
 </details>
 
-## Integrate beman.exemplar into your project
+## Integrate beman.copyable_function into your project
 
-To use `beman.exemplar` in your C++ project,
-include an appropriate `beman.exemplar` header from your source code.
+To use `beman.copyable_function` in your C++ project,
+include an appropriate `beman.copyable_function` header from your source code.
 
 ```c++
-#include <beman/exemplar/identity.hpp>
+#include <beman/copyable_function/copyable_function.hpp>
 ```
 
 > [!NOTE]
 >
-> `beman.exemplar` headers are to be included with the `beman/exemplar/` directories prefixed.
+> `beman.copyable_function` headers are to be included with the `beman/copyable_function/` directories prefixed.
 > It is not supported to alter include search paths to spell the include target another way. For instance,
-> `#include <identity.hpp>` is not a supported interface.
+> `#include <copyable_function.hpp>` is not a supported interface.
 
-How you will link your project against `beman.exemplar` will depend on your build system.
+How you will link your project against `beman.copyable_function` will depend on your build system.
 CMake instructions are provided in following sections.
 
 ### Linking your project to beman.exemplar with CMake
 
 For CMake based projects,
-you will need to use the `beman.exemplar` CMake module
-to define the `beman::exemplar` CMake target:
+you will need to use the `beman.copyable_function` CMake module
+to define the `beman::copyable_function` CMake target:
 
 ```cmake
-find_package(beman.exemplar REQUIRED)
+find_package(beman.copyable_function REQUIRED)
 ```
 
-You will also need to add `beman::exemplar` to the link libraries of
-any libraries or executables that include beman.exemplar's header file.
+You will also need to add `beman::copyable_function` to the link libraries of
+any libraries or executables that include beman.copyable_function's header file.
 
 ```cmake
-target_link_libraries(yourlib PUBLIC beman::exemplar)
+target_link_libraries(yourlib PUBLIC beman::copyable_function)
 ```
 
-### Produce beman.exemplar static library locally
+### Produce beman.copyable_function static library locally
 
-You can include exemplar's headers locally
-by producing a static `libbeman.exemplar.a` library.
+You can include copyable_function's headers locally
+by producing a static `libbeman.copyable_function.a` library.
 
 ```bash
 cmake --workflow --preset gcc-release
-cmake --install build/gcc-release --prefix /opt/beman.exemplar
+cmake --install build/gcc-release --prefix /opt/beman.copyable_function
 ```
 
-This will generate such directory structure at `/opt/beman.exemplar`.
+This will generate such directory structure at `/opt/beman.copyable_function`.
 
 ```txt
-/opt/beman.exemplar
+/opt/beman.copyable_function
 ├── include
 │   └── beman
-│       └── exemplar
-│           └── identity.hpp
+│       └── copyable_function
+│           └── copyable_function.hpp
 └── lib
-    └── libbeman.exemplar.a
+    └── libbeman.copyable_function.a
 ```
 
 ## Contributing
