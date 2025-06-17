@@ -19,15 +19,23 @@ class Buffer {
 
     template <class DecayType>
     DecayType* get_ptr() {
-        return std::launder(reinterpret_cast<DecayType**>(buffer))[0];
+        if (sizeof(DecayType) <= BufferSize) {
+            return std::launder(reinterpret_cast<DecayType*>(buffer));
+        } else {
+            return std::launder(reinterpret_cast<DecayType**>(buffer))[0];
+        }
     }
 
     template <class DecayType, class... Args>
     void construct(Args&&... args) {
-        std::byte* allocated_ptr =
-            static_cast<std::byte*>(::operator new(sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
-        std::construct_at(reinterpret_cast<std::byte**>(buffer), allocated_ptr);
-        std::construct_at(std::launder(reinterpret_cast<DecayType*>(allocated_ptr)), std::forward<Args>(args)...);
+        if (sizeof(DecayType) <= BufferSize) {
+            std::construct_at(std::launder(reinterpret_cast<DecayType*>(buffer)), std::forward<Args>(args)...);
+        } else {
+            std::byte* allocated_ptr =
+                static_cast<std::byte*>(::operator new(sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
+            std::construct_at(reinterpret_cast<std::byte**>(buffer), allocated_ptr);
+            std::construct_at(std::launder(reinterpret_cast<DecayType*>(allocated_ptr)), std::forward<Args>(args)...);
+        }
     }
 };
 

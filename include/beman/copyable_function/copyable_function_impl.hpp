@@ -54,8 +54,10 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
             [](BufferType& __buffer) {
                 using DecayT = std::decay_t<Functor>;
                 std::destroy_at(__buffer.get_ptr<Functor>());
-                ::operator delete(reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()),
-                                  std::align_val_t{alignof(DecayT)});
+                if (sizeof(DecayT) > BufferSize) {
+                    ::operator delete(reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()),
+                                      std::align_val_t{alignof(DecayT)});
+                }
             },
         .clone =
             [](BufferType& from, BufferType& to) {
@@ -153,7 +155,9 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 
     friend void swap(copyable_function& f1, copyable_function& f2) noexcept { f1.swap(f2); }
 
-    friend bool operator==(const copyable_function& func, std::nullptr_t) noexcept { return __vtable_ptr == nullptr; }
+    friend bool operator==(const copyable_function& func, std::nullptr_t) noexcept {
+        return func.__vtable_ptr == nullptr;
+    }
 };
 } // namespace beman
 
