@@ -207,7 +207,6 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
         .clone =
             [](BufferType& from, BufferType& to) {
                 using DecayT = std::decay_t<Functor>;
-                auto* ptr    = new DecayT(*from.get_ptr<DecayT>());
                 to.template construct<DecayT>(*from.get_ptr<DecayT>());
             }};
 
