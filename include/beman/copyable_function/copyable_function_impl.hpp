@@ -206,7 +206,7 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
                 std::destroy_at(__buffer.get_ptr<Functor>());
                 if(sizeof(DecayT) > BufferSize)
                 {
-                    ::operator delete[](*reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()), std::align_val_t{alignof(DecayT)});
+                    ::operator delete(*reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()), std::align_val_t{alignof(DecayT)});
                 }
             },
         .clone = [](BufferType& from, BufferType& to)

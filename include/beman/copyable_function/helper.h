@@ -27,12 +27,10 @@ class Buffer
     template<class DecayType, class... Args> 
     void construct(Args&&... args)
     {
-        std::byte* allocated_ptr = static_cast<std::byte*>(::operator new[](sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
+        std::byte* allocated_ptr = static_cast<std::byte*>(::operator new(sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
         std::construct_at(reinterpret_cast<std::byte**>(buffer), allocated_ptr);
         std::construct_at(std::launder(reinterpret_cast<DecayType*>(allocated_ptr)), std::forward<Args>(args)...);
-    }
-        
-        
+    }    
 };
 
 template<class BufferType, class R, class... Args> 
