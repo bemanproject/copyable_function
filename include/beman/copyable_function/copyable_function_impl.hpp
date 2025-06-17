@@ -94,7 +94,7 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
     }
 
     copyable_function(copyable_function&& other) noexcept
-        : __vtable_ptr(std::move(other.__vtable_ptr)), __buffer(std::move(other.__buffer)) {
+        : __buffer(std::move(other.__buffer)), __vtable_ptr(std::move(other.__vtable_ptr)) {
         other.__vtable_ptr = nullptr;
     }
 
