@@ -5,7 +5,8 @@ inline bool flag = false;
 inline void func() { flag = true; }
 
 struct Callable {
-    std::initializer_list<int> il Callable() {}
+    std::initializer_list<int> il;
+    Callable() {}
     Callable(std::initializer_list<int> il) : il(il) {}
 
     int operator()() { return 42; }
