@@ -23,10 +23,6 @@
 #define _COPYABLE_FUNC_NOEXCEPT false
 #endif
 
-#ifndef _USE_CUSTOM_VTABLE
-#define _USE_CUSTOM_VTABLE true
-#endif
-
 namespace beman {
 
 template <class... T>
@@ -58,10 +54,8 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
             [](BufferType& __buffer) {
                 using DecayT = std::decay_t<Functor>;
                 std::destroy_at(__buffer.get_ptr<Functor>());
-                if (sizeof(DecayT) > BufferSize) {
-                    ::operator delete(*reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()),
-                                      std::align_val_t{alignof(DecayT)});
-                }
+                ::operator delete(reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()),
+                                  std::align_val_t{alignof(DecayT)});
             },
         .clone =
             [](BufferType& from, BufferType& to) {
@@ -163,4 +157,3 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 #undef _REF
 #undef _COPYABLE_FUNC_NOEXCEPT
 #undef INVOKE_QUALS
-#undef _USE_CUSTOM_VTABLE
