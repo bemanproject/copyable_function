@@ -3,6 +3,12 @@
 
 #include <new>
 
+template <typename T>
+struct _is_in_place_type : std::false_type {};
+
+template <typename T>
+struct _is_in_place_type<std::in_place_type_t<T>> : std::true_type {};
+
 template <std::size_t BufferSize, std::size_t Alignment>
 class Buffer {
   private:

@@ -100,7 +100,8 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 
     template <class Func>
     copyable_function(Func&& f)
-        requires(!std::is_same_v<std::remove_cvref_t<Func>, copyable_function> && is_callable_from<std::decay_t<Func>>)
+        requires(!std::is_same_v<std::remove_cvref_t<Func>, copyable_function> &&
+                 !_is_in_place_type<std::remove_cvref_t<Func>>::value && is_callable_from<std::decay_t<Func>>)
     {
         using DecayType = std::decay_t<Func>;
         __vtable_ptr    = &__vtable<DecayType>;
