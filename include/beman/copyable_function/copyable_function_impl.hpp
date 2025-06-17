@@ -2,6 +2,7 @@
 #include <functional>
 #include <type_traits>
 #include <memory>
+#include <new>
 
 #include "helper.h"
 
@@ -195,60 +196,124 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
         .call = [](BufferType& __buffer, Args&&... args) -> R 
             {
                 return std::invoke_r<R>(
-                    static_cast<Functor INVOKE_QUALS>(*__buffer.__get<Functor>()), 
+                    static_cast<Functor INVOKE_QUALS>(*__buffer.get_ptr<Functor>()), 
                     std::forward<Args>(args)...
                 );
-            }
-        .destroy = [](BufferType& __buffer) -> R 
+            },
+        .destroy = [](BufferType& __buffer) 
             {
-                std::destroy<>
-            };
+                using DecayT = std::decay_t<Functor>;
+                std::destroy_at(__buffer.get_ptr<Functor>());
+                if(sizeof(DecayT) > BufferSize)
+                {
+                    ::operator delete[](*reinterpret_cast<void**>(__buffer.get_ptr<DecayT>()), std::align_val_t{alignof(DecayT)});
+                }
+            },
+        .clone = [](BufferType& from, BufferType& to)
+            {
+                using DecayT = std::decay_t<Functor>;
+                auto* ptr = new DecayT(*from.get_ptr<DecayT>());
+                to.template construct<DecayT>(*from.get_ptr<DecayT>());
+            }
     };
 
     template<class _Func, class... _Args> 
-    void construct(Args&&... args)
+    void construct(_Args&&... args)
     {
         using DecayType = std::decay_t<_Func>;
-        __buffer.template construct<DecayType>(std::forward<Args>(args)...);
+        __vtable_ptr = &__vtable<DecayType>; 
+        __buffer.template construct<DecayType>(std::forward<_Args>(args)...);
     }
 
-    const VTableType *__vtable_ptr;
+    const VTableType *__vtable_ptr = nullptr;
 
   public:
     using result_type            = R;
     copyable_function() noexcept = default;
-    copyable_function(std::nullptr_t) noexcept : fn(nullptr) {}
+    copyable_function(std::nullptr_t) noexcept 
+    #if _USE_CUSTOM_VTABLE == false
+        : fn(nullptr) {}
+    #else
+    {
+        __vtable_ptr = nullptr;
+    }
+    #endif
 
-    copyable_function(const copyable_function& other) : fn(other.fn) {}
+    ~copyable_function()
+    {
+        #if _USE_CUSTOM_VTABLE == true
+            if(__vtable_ptr){
+                __vtable_ptr->destroy(__buffer);
+                __vtable_ptr = nullptr;
+            }
+        #endif
+    }
 
-    copyable_function(copyable_function&& other) noexcept : fn(std::move(other.fn)) {}
+    copyable_function(const copyable_function& other)
+    #if _USE_CUSTOM_VTABLE == false
+        : fn(other.fn)
+    #endif
+    {
+        #if _USE_CUSTOM_VTABLE == true
+            __vtable_ptr = other.__vtable_ptr;
+            if(__vtable_ptr)
+            {
+               __vtable_ptr->clone(other.__buffer, __buffer);
+            }
+        #endif
+    }
+
+    copyable_function(copyable_function&& other) noexcept 
+    #if _USE_CUSTOM_VTABLE == false
+        : fn(std::move(other.fn))
+    #else 
+        : __vtable_ptr(std::move(other.__vtable_ptr)),
+        __buffer(std::move(other.__buffer))
+    #endif
+    {
+        other.__vtable_ptr = nullptr;
+    }
 
     template <class Func>
-    copyable_function(Func&& f) 
-        #if _USE_CUSTOM_VTABLE == true
+    copyable_function(Func&& f) requires (!std::is_same_v<std::remove_cvref_t<Func>, copyable_function>)
+        #if _USE_CUSTOM_VTABLE == false
             : fn(std::forward<Func>(f)) 
         #endif
     {
-        #if _USE_CUSTOM_VTABLE == false
+        #if _USE_CUSTOM_VTABLE == true
             using DecayType = std::decay_t<Func>;
             __vtable_ptr = &__vtable<DecayType>; 
-            construct<DecayType>(std::forward<Func>(f));
+            __buffer.template construct<DecayType>(std::forward<Func>(f));
         #endif
     }
 
     template <class Func, class... _Args>
     explicit copyable_function(std::in_place_type_t<Func>, _Args&&... args)
-        : fn(std::in_place_type_t<Func>{}, std::forward<_Args>(args)...) {}
+    #if _USE_CUSTOM_VTABLE == false
+        : fn(std::in_place_type_t<Func>{}, std::forward<_Args>(args)...) 
+    #endif
+    {
+        #if _USE_CUSTOM_VTABLE == true
+            construct<Func>(std::forward<_Args>(args)...);
+        #endif
+    }
 
     template <class Func, class U, class... _Args>
     explicit copyable_function(std::in_place_type_t<Func>, std::initializer_list<U> il, _Args&&... args)
-        : fn(std::in_place_type_t<Func>{}, il, std::forward<_Args>(args)...) {}
+    #if _USE_CUSTOM_VTABLE == false
+        : fn(std::in_place_type_t<Func>{}, il, std::forward<_Args>(args)...) 
+    #endif
+    {
+        #if _USE_CUSTOM_VTABLE == true
+            construct<Func>(il, std::forward<_Args>(args)...);
+        #endif
+    }
 
     copyable_function& operator=(const copyable_function& other) {
         #if _USE_CUSTOM_VTABLE == false 
             fn = other.fn;
             return *this;
-        #else _USE_CUSTOM_VTABLE == 
+        #else
             copyable_function(other).swap(*this);
             return *this; 
         #endif
@@ -265,8 +330,14 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
     }
 
     copyable_function& operator=(std::nullptr_t) noexcept {
-        fn.reset();
-        return *this;
+        #if _USE_CUSTOM_VTABLE == false
+            fn.reset();
+            return *this;
+        #else 
+            __vtable_ptr->destroy(__buffer);
+            __vtable_ptr = nullptr;
+            return *this;
+        #endif
     }
 
     template <class F>
@@ -281,12 +352,12 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
     }
 
     R operator()(Args&&... args) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT) {
-        #if _USE_CUSTOM_VTABLE == true 
+        #if _USE_CUSTOM_VTABLE == false 
             using Type = function_holder<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)>;
             return std::invoke_r<R>(static_cast<Type INVOKE_QUALS>(fn), std::forward<Args>(args)...);
         #else
-            const auto __call = static_cast<R (*)(BufferT&, Args...)>(__vtable_ptr->call);
-            return __call(buffer, std::forward<Args>(args)...);
+            const auto __call = static_cast<R (*)(BufferType&, Args...)>(__vtable_ptr->call);
+            return __call(__buffer, std::forward<Args>(args)...);
         #endif
     }
 
@@ -296,7 +367,7 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
             fn.swap(other.fn); 
         #else 
             std::swap(__vtable_ptr, other.__vtable_ptr);
-            std::swap(buffer, other.buffer);
+            std::swap(__buffer, other.__buffer);
         #endif
     }
 
@@ -311,3 +382,4 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 #undef _COPYABLE_FUNC_NOEXCEPT
 #undef INVOKE_QUALS
 #undef _USE_CUSTOM_VTABLE
+
