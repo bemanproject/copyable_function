@@ -10,7 +10,8 @@ target_sources(
     PUBLIC
         FILE_SET HEADERS
         BASE_DIRS ${PROJECT_SOURCE_DIR}/include
-        FILES ${PROJECT_SOURCE_DIR}/include/beman/copyable_function/copyable_function.hpp
+        FILES
+            ${PROJECT_SOURCE_DIR}/include/beman/copyable_function/copyable_function.hpp
 )
 
 set_target_properties(

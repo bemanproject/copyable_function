@@ -20,7 +20,6 @@ option(
     ${PROJECT_IS_TOP_LEVEL}
 )
 
-
 option(
     BEMAN_COPYABLE_FUNCTION_INSTALL_CONFIG_FILE_PACKAGE
     "Enable creating and installing a CMake config-file package. Default: ${PROJECT_IS_TOP_LEVEL}. Values: { ON, OFF }."

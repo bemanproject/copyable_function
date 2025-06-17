@@ -3,43 +3,39 @@
 
 #include <new>
 
-template<std::size_t BufferSize, std::size_t Alignment> 
-class Buffer
-{
-    private:
-        alignas(Alignment) std::byte buffer[BufferSize];
-    public: 
+template <std::size_t BufferSize, std::size_t Alignment>
+class Buffer {
+  private:
+    alignas(Alignment) std::byte buffer[BufferSize];
 
-    Buffer() = default; 
-    Buffer(const Buffer&) = default; 
+  public:
+    Buffer()                         = default;
+    Buffer(const Buffer&)            = default;
     Buffer& operator=(const Buffer&) = default;
-    ~Buffer() = default;
+    ~Buffer()                        = default;
 
-    Buffer(Buffer&&) = default; 
+    Buffer(Buffer&&)            = default;
     Buffer& operator=(Buffer&&) = default;
 
-    template<class DecayType> 
-    DecayType* get_ptr() 
-    {
+    template <class DecayType>
+    DecayType* get_ptr() {
         return std::launder(reinterpret_cast<DecayType**>(buffer))[0];
     }
 
-    template<class DecayType, class... Args> 
-    void construct(Args&&... args)
-    {
-        std::byte* allocated_ptr = static_cast<std::byte*>(::operator new(sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
+    template <class DecayType, class... Args>
+    void construct(Args&&... args) {
+        std::byte* allocated_ptr =
+            static_cast<std::byte*>(::operator new(sizeof(DecayType), std::align_val_t{alignof(DecayType)}));
         std::construct_at(reinterpret_cast<std::byte**>(buffer), allocated_ptr);
         std::construct_at(std::launder(reinterpret_cast<DecayType*>(allocated_ptr)), std::forward<Args>(args)...);
-    }    
+    }
 };
 
-template<class BufferType, class R, class... Args> 
-struct VTable
-{
+template <class BufferType, class R, class... Args>
+struct VTable {
     R (*call)(BufferType&, Args&&...);
     void (*destroy)(BufferType&);
     void (*clone)(BufferType& from, BufferType& to);
 };
-
 
 #endif

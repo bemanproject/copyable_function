@@ -3,11 +3,9 @@
 include(GoogleTest)
 
 add_executable(beman.copyable_function.tests.copyable_function)
-target_sources(beman.copyable_function.tests.copyable_function PRIVATE 
-    assignment.test.cpp
-    ctor.test.cpp
-    call.test.cpp
-    swap.test.cpp
+target_sources(
+    beman.copyable_function.tests.copyable_function
+    PRIVATE assignment.test.cpp ctor.test.cpp call.test.cpp swap.test.cpp
 )
 
 target_link_libraries(
