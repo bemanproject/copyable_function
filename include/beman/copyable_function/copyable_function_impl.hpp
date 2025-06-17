@@ -98,21 +98,25 @@ class copyable_function<R(Args...) _CONST _REF noexcept(_COPYABLE_FUNC_NOEXCEPT)
 
     template <class Func>
     copyable_function(Func&& f)
-        requires(!std::is_same_v<std::remove_cvref_t<Func>, copyable_function>)
+        requires(!std::is_same_v<std::remove_cvref_t<Func>, copyable_function> && is_callable_from<std::decay_t<Func>>)
     {
         using DecayType = std::decay_t<Func>;
         __vtable_ptr    = &__vtable<DecayType>;
         __buffer.template construct<DecayType>(std::forward<Func>(f));
     }
 
-    template <class Func, class... _Args>
-    explicit copyable_function(std::in_place_type_t<Func>, _Args&&... args) {
-        construct<Func>(std::forward<_Args>(args)...);
+    template <class T, class... _Args>
+    explicit copyable_function(std::in_place_type_t<T>, _Args&&... args)
+        requires(is_callable_from<std::decay_t<T>>)
+    {
+        construct<T>(std::forward<_Args>(args)...);
     }
 
-    template <class Func, class U, class... _Args>
-    explicit copyable_function(std::in_place_type_t<Func>, std::initializer_list<U> il, _Args&&... args) {
-        construct<Func>(il, std::forward<_Args>(args)...);
+    template <class T, class U, class... _Args>
+    explicit copyable_function(std::in_place_type_t<T>, std::initializer_list<U> il, _Args&&... args)
+        requires(is_callable_from<std::decay_t<T>>)
+    {
+        construct<T>(il, std::forward<_Args>(args)...);
     }
 
     copyable_function& operator=(const copyable_function& other) {
