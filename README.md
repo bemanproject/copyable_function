@@ -1,4 +1,4 @@
-# beman.exemplar: A Beman Library Exemplar
+# beman.copyable_function: A Beman Library Implementation of copyable_function (P2548)
 
 <!--
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -7,72 +7,37 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 <!-- markdownlint-disable-next-line line-length -->
 ![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg)
 
-`beman.exemplar` is a minimal C++ library conforming to [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
+`beman.copyable_function` is a minimal C++ library conforming to [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
 This can be used as a template for those intending to write Beman libraries.
 It may also find use as a minimal and modern  C++ project structure.
-
-**Implements**: `std::identity` proposed in [Standard Library Concepts (P0898R3)](https://wg21.link/P0898R3).
 
 **Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
 
 ## Usage
 
-`std::identity` is a function object type whose `operator()` returns its argument unchanged.
-`std::identity` serves as the default projection in constrained algorithms.
-Its direct usage is usually not needed.
+`std::copyable_function` is a type-erased function wrapper
+that can represent any copyable callable matching
+the function signature R(Args...)
 
 ### Usage: default projection in constrained algorithms
 
 The following code snippet illustrates how we can achieve a default projection using `beman::exemplar::identity`:
 
 ```cpp
-#include <beman/exemplar/identity.hpp>
+#include <beman/copyable_function/copyable_function.hpp>
 
 namespace exe = beman::exemplar;
 
-// Class with a pair of values.
-struct Pair
-{
-    int n;
-    std::string s;
-
-    // Output the pair in the form {n, s}.
-    // Used by the range-printer if no custom projection is provided (default: identity projection).
-    friend std::ostream &operator<<(std::ostream &os, const Pair &p)
-    {
-        return os << "Pair" << '{' << p.n << ", " << p.s << '}';
-    }
-};
-
-// A range-printer that can print projected (modified) elements of a range.
-// All the elements of the range are printed in the form {element1, element2, ...}.
-// e.g., pairs with identity: Pair{1, one}, Pair{2, two}, Pair{3, three}
-// e.g., pairs with custom projection: {1:one, 2:two, 3:three}
-template <std::ranges::input_range R,
-          typename Projection>
-void print(const std::string_view rem, R &&range, Projection projection = exe::identity>)
-{
-    std::cout << rem << '{';
-    std::ranges::for_each(
-        range,
-        [O = 0](const auto &o) mutable
-        { std::cout << (O++ ? ", " : "") << o; },
-        projection);
-    std::cout << "}\n";
+// a Callable object
+struct Callable {
+    int operator()() { return 42; }
+    int operator()() const noexcept { return 43; }
 };
 
 int main()
 {
-    // A vector of pairs to print.
-    const std::vector<Pair> pairs = {
-        {1, "one"},
-        {2, "two"},
-        {3, "three"},
-    };
-
-    // Print the pairs using the default projection.
-    print("\tpairs with beman: ", pairs);
-
+    beman::copyable_function<int()> f(Callable{});
+    int x = f();
     return 0;
 }
 
@@ -88,13 +53,16 @@ This project requires at least the following to build:
 
 * C++17
 * CMake 3.25
-* (Test Only) GoogleTest
 
-You can disable building tests by setting cmake option
+This project pulls [Google Test](https://github.com/google/googletest)
+from GitHub as a development dependency for its testing framework,
+thus requiring an active internet connection to configure.
+You can disable this behavior by setting cmake option
 [`BEMAN_EXEMPLAR_BUILD_TESTS`](#beman_exemplar_build_tests) to `OFF`
 when configuring the project.
 
-Even when tests are being built and run, some will not be compiled
+However,
+some examples and tests will not be compiled
 unless provided compiler support **C++20** or ranges capabilities enabled.
 
 > [!TIP]
@@ -158,9 +126,9 @@ GitHub codespaces, please reference [this doc](https://docs.github.com/en/codesp
 <details>
 <summary> For Linux based systems </summary>
 
-Beman libraries require [recent versions of CMake](#build-environment),
-we advise you to download CMake directly from [CMake's website](https://cmake.org/download/)
-or install it via the [Kitware apt library](https://apt.kitware.com/).
+Beman libraries requires [recent versions of CMake](#build-environment),
+we advice you download CMake directly from [CMake's website](https://cmake.org/download/)
+or install via the [Kitware apt library](https://apt.kitware.com/).
 
 A [supported compiler](#supported-platforms) should be available from your package manager.
 Alternatively you could use an install script from official compiler vendors.
@@ -171,18 +139,6 @@ as per [the official LLVM install guide](https://apt.llvm.org/).
 ```bash
 bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 ```
-
-If the included test suite is being built and run, a GoogleTest library will be
-required. Here is an example of installing GoogleTest on a Debian-based Linux
-environment:
-
-```bash
-apt install libgtest-dev
-```
-
-The precise command and package name will vary depending on the Linux OS you are
-using. Be sure to consult documentation and the package repository for the system
-you are using.
 
 </details>
 
@@ -198,31 +154,11 @@ brew install cmake
 
 A [supported compiler](#supported-platforms) is also available from brew.
 
-For example, you can install the latest major release of Clang as:
+For example, you can install latest major release of Clang++ compiler as:
 
 ```bash
 brew install llvm
 ```
-
-</details>
-
-<details>
-<summary> For Windows </summary>
-
-To build Beman libraries, you will need the MSVC compiler. MSVC can be obtained
-by installing Visual Studio; the free Visual Studio 2022 Community Edition can
-be downloaded from
-[Microsoft](https://visualstudio.microsoft.com/vs/community/).
-
-After Visual Studio has been installed, you can launch "Developer PowerShell for
-VS 2022" by typing it into Windows search bar. This shell environment will
-provide CMake, Ninja, and MSVC, allowing you to build the library and run the
-tests.
-
-Note that you will need to use FetchContent to build GoogleTest. To do so,
-please see the instructions in the "Build GoogleTest dependency from github.com"
-dropdown in the [Project specific configure
-arguments](#project-specific-configure-arguments) section.
 
 </details>
 
@@ -239,7 +175,7 @@ Here is an example to invoke the `gcc-debug` preset.
 cmake --workflow --preset gcc-debug
 ```
 
-Generally, there are two kinds of presets, `debug` and `release`.
+Generally, there's two kinds of presets, `debug` and `release`.
 
 The `debug` presets are designed to aid development, so it has debugging
 instrumentation enabled and as many sanitizers turned on as possible.
@@ -247,11 +183,11 @@ instrumentation enabled and as many sanitizers turned on as possible.
 > [!NOTE]
 >
 > The set of sanitizer supports are different across compilers.
-> You can checkout the exact set of compiler arguments by looking at the toolchain
+> You can checkout the exact set compiler arguments by looking at the toolchain
 > files under the [`cmake`](cmake/) directory.
 
 The `release` presets are designed for use in production environments,
-thus they have the highest optimization turned on (e.g. `O3`).
+thus it has the highest optimization turned on (e.g. `O3`).
 
 ### Configure and Build Manually
 
@@ -260,7 +196,7 @@ convenient, you might want to set different configuration or compiler arguments
 than any provided preset supports.
 
 To configure, build and test the project with extra arguments,
-you can run this set of commands.
+you can run this sets of command.
 
 ```bash
 cmake -B build -S . -DCMAKE_CXX_STANDARD=20 # Your extra arguments here.
@@ -273,27 +209,8 @@ ctest --test-dir build
 > Beman projects are
 > [passive projects](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md#cmake),
 > therefore,
-> you will need to specify the C++ version via `CMAKE_CXX_STANDARD`
+> you will need to specify C++ version via `CMAKE_CXX_STANDARD`
 > when manually configuring the project.
-
-### Finding and Fetching GTest from GitHub
-
-If you do not have GoogleTest installed on your development system, you may
-optionally configure this project to download a known-compatible release of
-GoogleTest from source and build it as well.
-
-Example commands:
-
-```shell
-cmake -B build -S . \
-    -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=./infra/cmake/use-fetch-content.cmake \
-    -DCMAKE_CXX_STANDARD=20
-cmake --build build --target all
-cmake --build build --target test
-```
-
-The precise version of GoogleTest that will be used is maintained in
-`./lockfile.json`.
 
 ### Project specific configure arguments
 
@@ -334,61 +251,61 @@ Enable building examples. Default: ON. Values: { ON, OFF }.
 
 </details>
 
-## Integrate beman.exemplar into your project
+## Integrate beman.copyable_function into your project
 
-To use `beman.exemplar` in your C++ project,
-include an appropriate `beman.exemplar` header from your source code.
+To use `beman.copyable_function` in your C++ project,
+include an appropriate `beman.copyable_function` header from your source code.
 
 ```c++
-#include <beman/exemplar/identity.hpp>
+#include <beman/copyable_function/copyable_function.hpp>
 ```
 
 > [!NOTE]
 >
-> `beman.exemplar` headers are to be included with the `beman/exemplar/` directories prefixed.
+> `beman.copyable_function` headers are to be included with the `beman/copyable_function/` directories prefixed.
 > It is not supported to alter include search paths to spell the include target another way. For instance,
-> `#include <identity.hpp>` is not a supported interface.
+> `#include <copyable_function.hpp>` is not a supported interface.
 
-How you will link your project against `beman.exemplar` will depend on your build system.
+How you will link your project against `beman.copyable_function` will depend on your build system.
 CMake instructions are provided in following sections.
 
 ### Linking your project to beman.exemplar with CMake
 
 For CMake based projects,
-you will need to use the `beman.exemplar` CMake module
-to define the `beman::exemplar` CMake target:
+you will need to use the `beman.copyable_function` CMake module
+to define the `beman::copyable_function` CMake target:
 
 ```cmake
-find_package(beman.exemplar REQUIRED)
+find_package(beman.copyable_function REQUIRED)
 ```
 
-You will also need to add `beman::exemplar` to the link libraries of
-any libraries or executables that include beman.exemplar's header file.
+You will also need to add `beman::copyable_function` to the link libraries of
+any libraries or executables that include beman.copyable_function's header file.
 
 ```cmake
-target_link_libraries(yourlib PUBLIC beman::exemplar)
+target_link_libraries(yourlib PUBLIC beman::copyable_function)
 ```
 
-### Produce beman.exemplar static library locally
+### Produce beman.copyable_function static library locally
 
-You can include exemplar's headers locally
-by producing a static `libbeman.exemplar.a` library.
+You can include copyable_function's headers locally
+by producing a static `libbeman.copyable_function.a` library.
 
 ```bash
 cmake --workflow --preset gcc-release
-cmake --install build/gcc-release --prefix /opt/beman.exemplar
+cmake --install build/gcc-release --prefix /opt/beman.copyable_function
 ```
 
-This will generate such directory structure at `/opt/beman.exemplar`.
+This will generate such directory structure at `/opt/beman.copyable_function`.
 
 ```txt
-/opt/beman.exemplar
+/opt/beman.copyable_function
 ├── include
 │   └── beman
-│       └── exemplar
-│           └── identity.hpp
+│       └── copyable_function
+│           └── copyable_function.hpp
 └── lib
-    └── libbeman.exemplar.a
+    └── libbeman.copyable_function.a
 ```
 
 ## Contributing
