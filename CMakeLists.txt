@@ -7,6 +7,7 @@ project(
     # targets (e.g., library, executable, etc.).
     DESCRIPTION "A Beman library copyable_function"
     LANGUAGES CXX
+    VERSION 1.0.0
 )
 set(CMAKE_CXX_STANDARD 26)
 
