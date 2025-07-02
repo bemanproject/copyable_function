@@ -4,10 +4,11 @@
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 -->
 
-<!-- markdownlint-disable-next-line line-length -->
+<!-- markdownlint-disable -->
 ![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)
 ![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg)
 ![Target Standard](https://github.com/bemanproject/beman/blob/main/images/badges/cpp26.svg)
+<!-- markdownlint-enable -->
 
 
 `beman.copyable_function` is a type-erased function wrapper that can represent any copyable callable matching
@@ -40,7 +41,6 @@ int main()
 
 ```
 
-Full runnable examples can be found in [`examples/`](examples/).
 
 ## Dependencies
 
@@ -58,25 +58,6 @@ You can disable this behavior by setting cmake option
 [`BEMAN_EXEMPLAR_BUILD_TESTS`](#beman_exemplar_build_tests) to `OFF`
 when configuring the project.
 
-However, some examples and tests will not be compiled
-unless provided compiler support **C++20** or ranges capabilities enabled. <-- TODO there are no examples
-
-> [!TIP]
->
-> In the logs you will be able to see if there are any examples that aren't enabled
-> due to compiler capabilities or the configured C++ version.
->
-> Below is an example:
->
-> ```txt
-> -- Looking for __cpp_lib_ranges
-> -- Looking for __cpp_lib_ranges - not found
-> CMake Warning at examples/CMakeLists.txt:12 (message):
->   Missing range support! Skip: identity_as_default_projection
->
->
-> Examples to be built: identity_direct_usage
-> ```
 
 ### Supported Platforms
 
