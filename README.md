@@ -1,27 +1,25 @@
-# beman.copyable_function: A Beman Library Implementation of copyable_function (P2548)
+# beman.copyable\_function: A Beman Library Implementation of copyable_function ([P2548](https://wg21.link/P2548))
 
 <!--
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 -->
 
-<!-- markdownlint-disable-next-line line-length -->
-![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg) ![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg)
+<!-- markdownlint-disable -->
+![Library Status](https://raw.githubusercontent.com/bemanproject/beman/refs/heads/main/images/badges/beman_badge-beman_library_under_development.svg)
+![Continuous Integration Tests](https://github.com/bemanproject/exemplar/actions/workflows/ci_tests.yml/badge.svg) ![Lint Check (pre-commit)](https://github.com/bemanproject/exemplar/actions/workflows/pre-commit.yml/badge.svg)
+![Target Standard](https://github.com/bemanproject/beman/blob/main/images/badges/cpp26.svg)
+<!-- markdownlint-enable -->
 
-`beman.copyable_function` is a minimal C++ library conforming to [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
-This can be used as a template for those intending to write Beman libraries.
-It may also find use as a minimal and modern  C++ project structure.
+
+`beman.copyable_function` is a type-erased function wrapper that can represent any copyable callable matching
+the function signature R(Args...). The library conforms to the [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_STANDARD.md).
 
 **Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/BEMAN_LIBRARY_MATURITY_MODEL.md#under-development-and-not-yet-ready-for-production-use)
 
 ## Usage
 
-`std::copyable_function` is a type-erased function wrapper
-that can represent any copyable callable matching
-the function signature R(Args...)
 
-### Usage: default projection in constrained algorithms
-
-The following code snippet illustrates how we can achieve a default projection using `beman::exemplar::identity`:
+The following code snippet illustrates `copyable_function`:
 
 ```cpp
 #include <beman/copyable_function/copyable_function.hpp>
@@ -43,7 +41,6 @@ int main()
 
 ```
 
-Full runnable examples can be found in [`examples/`](examples/).
 
 ## Dependencies
 
@@ -61,26 +58,6 @@ You can disable this behavior by setting cmake option
 [`BEMAN_EXEMPLAR_BUILD_TESTS`](#beman_exemplar_build_tests) to `OFF`
 when configuring the project.
 
-However,
-some examples and tests will not be compiled
-unless provided compiler support **C++20** or ranges capabilities enabled.
-
-> [!TIP]
->
-> In the logs you will be able to see if there are any examples that aren't enabled
-> due to compiler capabilities or the configured C++ version.
->
-> Below is an example:
->
-> ```txt
-> -- Looking for __cpp_lib_ranges
-> -- Looking for __cpp_lib_ranges - not found
-> CMake Warning at examples/CMakeLists.txt:12 (message):
->   Missing range support! Skip: identity_as_default_projection
->
->
-> Examples to be built: identity_direct_usage
-> ```
 
 ### Supported Platforms
 
