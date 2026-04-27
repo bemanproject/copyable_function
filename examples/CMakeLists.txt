@@ -1,5 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-add_executable(sample_usage sample_usage.cpp)
+set(ALL_EXAMPLES sample_usage)
+message("Examples to be built: ${ALL_EXAMPLES}")
 
-target_link_libraries(sample_usage PRIVATE beman::copyable_function)
+foreach(example ${ALL_EXAMPLES})
+    add_executable(beman.copyable_function.examples.${example})
+    target_sources(
+        beman.copyable_function.examples.${example}
+        PRIVATE ${example}.cpp
+    )
+    target_link_libraries(
+        beman.copyable_function.examples.${example}
+        PRIVATE beman::copyable_function
+    )
+endforeach()

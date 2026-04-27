@@ -1,7 +1,11 @@
 #ifndef BEMAN_COPYABLE_FUNCTION_HELPER
 #define BEMAN_COPYABLE_FUNCTION_HELPER
 
+#include <cstddef>
+#include <memory>
 #include <new>
+#include <type_traits>
+#include <utility>
 namespace beman {
 template <typename T>
 struct _is_in_place_type : std::false_type {};
