@@ -7,20 +7,20 @@
 #include "copyable_function_helper.h"
 
 #ifndef _CONST
-#define _CONST
+    #define _CONST
 #endif
 
 #ifndef _REF
-#define _REF
-#define INVOKE_QUALS _CONST&
+    #define _REF
+    #define INVOKE_QUALS _CONST&
 
 #else
-#define INVOKE_QUALS _CONST _REF
+    #define INVOKE_QUALS _CONST _REF
 
 #endif
 
 #ifndef _COPYABLE_FUNC_NOEXCEPT
-#define _COPYABLE_FUNC_NOEXCEPT false
+    #define _COPYABLE_FUNC_NOEXCEPT false
 #endif
 
 namespace beman {

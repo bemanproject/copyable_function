@@ -60,13 +60,13 @@ TEST(CallTest, CallTestUsingRvalueReference) {
 
 TEST(CallTest, CallTestWithLvalueRef) {
     {
-        beman::copyable_function<int()&> f(Callable{});
-        int                              x = f();
+        beman::copyable_function<int() &> f(Callable{});
+        int                               x = f();
         EXPECT_EQ(x, 42);
     }
     {
-        beman::copyable_function<int()&> f(LargeCallable{});
-        int                              x = f();
+        beman::copyable_function<int() &> f(LargeCallable{});
+        int                               x = f();
         EXPECT_EQ(x, 1);
     }
 }
