@@ -3,8 +3,7 @@
 cmake_minimum_required(VERSION 3.30...4.3)
 
 project(
-    beman.copyable_function # CMake Project Name, which is also the name of the top-level
-    # targets (e.g., library, executable, etc.).
+    beman.copyable_function
     DESCRIPTION "A Beman library copyable_function"
     LANGUAGES CXX
     VERSION 0.1.0

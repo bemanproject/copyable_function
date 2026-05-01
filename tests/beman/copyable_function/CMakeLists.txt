@@ -13,4 +13,7 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(beman.copyable_function.tests.copyable_function)
+gtest_discover_tests(
+    beman.copyable_function.tests.copyable_function
+    DISCOVERY_TIMEOUT 60
+)

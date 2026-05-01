@@ -93,6 +93,17 @@ For details on building beman.copyable_function without using a CMake preset, re
 
 ### Installation
 
+#### Vcpkg
+
+The preferred way to install copyable_function is via vcpkg. To do so, after installing vcpkg
+itself, you need to add support for the Beman project's [vcpkg
+registry](https://github.com/bemanproject/vcpkg-registry) by configuring a
+`vcpkg-configuration.json` file (which copyable_function [provides](vcpkg-configuration.json)).
+
+Then, simply run `vcpkg install beman-copyable-function`.
+
+#### Manual
+
 To install beman.copyable_function globally after building with the `gcc-release` preset, you can
 run:
 
