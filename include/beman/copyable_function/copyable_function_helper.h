@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
 #ifndef BEMAN_COPYABLE_FUNCTION_HELPER
 #define BEMAN_COPYABLE_FUNCTION_HELPER
 
