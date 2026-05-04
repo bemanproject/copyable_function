@@ -1,4 +1,4 @@
-# beman.copyable_function: A Beman Library Implementation of copyable_function ([P2548](https://wg21.link/P2548))
+# beman.copyable_function: A Beman Library Implementation of copyable_function
 
 <!--
 SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 `beman.copyable_function` is a type-erased function wrapper that can represent any copyable callable matching
 the function signature R(Args...). The library conforms to the [The Beman Standard](https://github.com/bemanproject/beman/blob/main/docs/beman_standard.md).
 
-**Implements**: `std::copyable_function` proposed in [P2548R6](https://wg21.link/P2548R6).
+**Implements**: [`copyable_function` (P2548)](https://wg21.link/P2548R6)
 
 **Status**: [Under development and not yet ready for production use.](https://github.com/bemanproject/beman/blob/main/docs/beman_library_maturity_model.md#under-development-and-not-yet-ready-for-production-use)
 
