@@ -70,7 +70,7 @@ You can disable building examples by setting CMake option `BEMAN_COPYABLE_FUNCTI
 |------------|---------|---------------|-------------------|
 | GCC        | 16-13   | C++26, C++23  | libstdc++         |
 | GCC        | 12      | C++23         | libstdc++         |
-| Clang      | 22-19   | C++26, C++23  | libstdc++, libc++ |
+| Clang      | 23-19   | C++26, C++23  | libstdc++, libc++ |
 | Clang      | 18      | C++26, C++23  | libc++            |
 | Clang      | 18      | C++23         | libstdc++         |
 | Clang      | 17      | C++26, C++23  | libc++            |
